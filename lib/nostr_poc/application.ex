@@ -17,9 +17,10 @@ defmodule NostrPoc.Application do
       # Start Finch
       {Finch, name: NostrPoc.Finch},
       # Start the Endpoint (http/https)
-      NostrPocWeb.Endpoint
+      NostrPocWeb.Endpoint,
       # Start a worker by calling: NostrPoc.Worker.start_link(arg)
       # {NostrPoc.Worker, arg}
+      Nostr.Client
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -33,6 +34,15 @@ defmodule NostrPoc.Application do
   @impl true
   def config_change(changed, _new, removed) do
     NostrPocWeb.Endpoint.config_change(changed, removed)
+
+    configure_nostr()
+
     :ok
+  end
+
+  defp configure_nostr() do
+    for relay <- Application.fetch_env!(:nostr_poc, :relays) do
+      Nostr.Client.add_relay(relay)
+    end
   end
 end
